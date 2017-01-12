@@ -1,0 +1,14 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: openjdk
+    tag: 8-jdk-alpine
+
+inputs:
+- name: java-buildpack-container-certificate-trust-store
+
+run:
+  path: java-buildpack-container-certificate-trust-store/ci/unit-test.sh
