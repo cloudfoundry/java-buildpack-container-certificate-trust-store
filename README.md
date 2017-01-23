@@ -8,7 +8,7 @@
 The `java-buildpack-container-certificate-trust-store` is a utility for reading the SSL CA certificates from a container and creating a Java Trust Store to house them.
 
 ## Development
-The project depends on Java 8.  To build from source, run the following:
+The project depends on Java 7.  To build from source, run the following:
 
 ```shell
 $ ./mvnw clean package

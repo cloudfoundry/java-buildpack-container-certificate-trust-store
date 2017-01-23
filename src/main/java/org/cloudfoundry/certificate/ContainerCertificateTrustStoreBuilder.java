@@ -18,6 +18,7 @@ package org.cloudfoundry.certificate;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,6 +27,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.List;
 
 public final class ContainerCertificateTrustStoreBuilder {
 
@@ -39,11 +41,17 @@ public final class ContainerCertificateTrustStoreBuilder {
     }
 
     static int createTrustStore(Path source, Path destination, String password) throws IOException, KeyStoreException {
-        KeyStore keyStore = Files.lines(source)
-            .reduce(CertificateBuilder.identity(), CertificateBuilder::accumulate, CertificateBuilder::combine)
-            .pemEncodedCertificates().stream()
-            .map(X509CertificateBuilder::toCertificate)
-            .reduce(KeyStoreBuilder.identity(), KeyStoreBuilder::accumulate, KeyStoreBuilder::combine);
+        List<String> lines = Files.readAllLines(source, Charset.defaultCharset());
+
+        CertificateBuilder certificateBuilder = CertificateBuilder.identity();
+        for (String line : lines) {
+            CertificateBuilder.accumulate(certificateBuilder, line);
+        }
+
+        KeyStore keyStore = KeyStoreBuilder.identity();
+        for (String certificate : certificateBuilder.pemEncodedCertificates()) {
+            KeyStoreBuilder.accumulate(keyStore, X509CertificateBuilder.toCertificate(certificate));
+        }
 
         store(destination, keyStore, password);
         return keyStore.size();
@@ -56,6 +64,5 @@ public final class ContainerCertificateTrustStoreBuilder {
             throw new WrapperException(e);
         }
     }
-
 
 }

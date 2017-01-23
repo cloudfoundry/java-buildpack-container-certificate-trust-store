@@ -10,7 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="java-buildpack-container-certificate-trust-store" target="1.8" />
+      <module name="java-buildpack-container-certificate-trust-store" target="1.7" />
     </bytecodeTargetLevel>
   </component>
 </project>
