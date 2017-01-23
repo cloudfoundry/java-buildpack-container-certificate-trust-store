@@ -18,7 +18,6 @@ package org.cloudfoundry.certificate;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 final class CertificateBuilder {
 
@@ -74,8 +73,23 @@ final class CertificateBuilder {
             return;
         }
 
-        this.certificates.add(this.current.stream().collect(Collectors.joining("\n")));
+        this.certificates.add(join(this.current, "\n"));
         this.current = null;
+    }
+
+    private String join(List<String> source, String delimiter) {
+        StringBuilder sb = new StringBuilder();
+
+        int i = 0;
+        for (String s : source) {
+            if (i > 0) {
+                sb.append(delimiter);
+            }
+            sb.append(s);
+            i++;
+
+        }
+        return sb.toString();
     }
 
     private void start() {

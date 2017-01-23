@@ -37,7 +37,7 @@
     <url>https://github.com/cloudfoundry/java-buildpack-container-certificate-trust-store</url>
 
     <properties>
-        <assertj.version>3.6.1</assertj.version>
+        <assertj.version>2.6.0</assertj.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -69,8 +69,8 @@
                         <arg>-Xlint:-processing</arg>
                     </compilerArgs>
                     <showWarnings>true</showWarnings>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>1.7</source>
+                    <target>1.7</target>
                 </configuration>
             </plugin>
             <plugin>
