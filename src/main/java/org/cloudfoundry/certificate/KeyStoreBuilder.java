@@ -20,46 +20,23 @@ import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.Enumeration;
 import java.util.concurrent.atomic.AtomicInteger;
 
 final class KeyStoreBuilder {
 
     private static final AtomicInteger counter = new AtomicInteger();
 
-    static KeyStore accumulate(KeyStore keyStore, X509Certificate certificate) {
-        try {
-            keyStore.setCertificateEntry(getAlias(), certificate);
-            return keyStore;
-        } catch (KeyStoreException e) {
-            throw new WrapperException(e);
-        }
+    static KeyStore accumulate(KeyStore keyStore, Certificate certificate) throws KeyStoreException {
+        keyStore.setCertificateEntry(getAlias(), certificate);
+        return keyStore;
     }
 
-    static KeyStore combine(KeyStore left, KeyStore right) {
-        try {
-            Enumeration<String> aliases = right.aliases();
-            while (aliases.hasMoreElements()) {
-                String alias = aliases.nextElement();
-                left.setCertificateEntry(alias, right.getCertificate(alias));
-            }
-
-            return left;
-        } catch (KeyStoreException e) {
-            throw new WrapperException(e);
-        }
-    }
-
-    static KeyStore identity() {
-        try {
-            KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-            keyStore.load(null);
-            return keyStore;
-        } catch (CertificateException | IOException | KeyStoreException | NoSuchAlgorithmException e) {
-            throw new WrapperException(e);
-        }
+    static KeyStore identity() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+        KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+        keyStore.load(null);
+        return keyStore;
     }
 
     private static String getAlias() {
