@@ -21,26 +21,22 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.Enumeration;
 import java.util.List;
 
 public final class ContainerCertificateTrustStoreBuilder {
 
     public static void main(String[] args) throws Throwable {
-        try {
-            int count = createTrustStore(Paths.get(args[0]), Paths.get(args[1]), args[2]);
-            System.out.println(count);
-        } catch (WrapperException e) {
-            throw e.getCause();
-        }
+        Arguments arguments = Arguments.parse(args);
+        createTrustStore(arguments.getContainerSource(), arguments.getDestination(), arguments.getDestinationPassword(), arguments.getJreSource(), arguments.getJreSourcePassword());
     }
 
-    static int createTrustStore(Path source, Path destination, String password) throws IOException, KeyStoreException {
+    private static void addContainerCertificates(Path source, KeyStore keyStore) throws IOException, KeyStoreException {
         List<String> lines = Files.readAllLines(source, Charset.defaultCharset());
 
         CertificateBuilder certificateBuilder = CertificateBuilder.identity();
@@ -48,20 +44,39 @@ public final class ContainerCertificateTrustStoreBuilder {
             CertificateBuilder.accumulate(certificateBuilder, line);
         }
 
-        KeyStore keyStore = KeyStoreBuilder.identity();
         for (String certificate : certificateBuilder.pemEncodedCertificates()) {
             KeyStoreBuilder.accumulate(keyStore, X509CertificateBuilder.toCertificate(certificate));
         }
 
-        store(destination, keyStore, password);
-        return keyStore.size();
     }
 
-    private static void store(Path destination, KeyStore keyStore, String password) {
+    private static void addJreCertificates(Path jreSource, String jreSourcePassword, KeyStore keyStore) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
+        KeyStore jreKeyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+        jreKeyStore.load(Files.newInputStream(jreSource), jreSourcePassword.toCharArray());
+
+        Enumeration<String> aliases = jreKeyStore.aliases();
+        while (aliases.hasMoreElements()) {
+            String alias = aliases.nextElement();
+
+            if (jreKeyStore.isCertificateEntry(alias)) {
+                KeyStoreBuilder.accumulate(keyStore, jreKeyStore.getCertificate(alias));
+            }
+        }
+    }
+
+    private static void createTrustStore(Path containerSource, Path destination, String destinationPassword, Path jreSource, String jreSourcePassword) throws IOException, KeyStoreException,
+        CertificateException, NoSuchAlgorithmException {
+        KeyStore keyStore = KeyStoreBuilder.identity();
+
+        addContainerCertificates(containerSource, keyStore);
+        addJreCertificates(jreSource, jreSourcePassword, keyStore);
+
+        store(destination, keyStore, destinationPassword);
+    }
+
+    private static void store(Path destination, KeyStore keyStore, String password) throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
         try (OutputStream out = Files.newOutputStream(destination, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)) {
             keyStore.store(out, password.toCharArray());
-        } catch (CertificateException | IOException | KeyStoreException | NoSuchAlgorithmException e) {
-            throw new WrapperException(e);
         }
     }
 

@@ -32,7 +32,7 @@ final class X509CertificateBuilder {
         try {
             CERTIFICATE_FACTORY = CertificateFactory.getInstance("X.509");
         } catch (CertificateException e) {
-            throw new WrapperException(e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -40,7 +40,7 @@ final class X509CertificateBuilder {
         try (InputStream in = new ByteArrayInputStream(s.getBytes(Charset.forName("UTF-8")))) {
             return (X509Certificate) CERTIFICATE_FACTORY.generateCertificate(in);
         } catch (CertificateException | IOException e) {
-            throw new WrapperException(e);
+            throw new RuntimeException(e);
         }
     }
 

@@ -19,6 +19,7 @@ package org.cloudfoundry.certificate;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -35,29 +36,31 @@ import static org.assertj.core.api.Assertions.assertThat;
 public final class ContainerCertificateTrustStoreBuilderTest {
 
     @Test
-    public void darwin() throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
-        Path source = new ClassPathResource("cert.pem").getFile().toPath();
-        Path destination = Files.createTempFile("keystore-", "jks");
-        String password = "test-password";
+    public void darwin() throws Throwable {
+        File containerSource = new ClassPathResource("cert.pem").getFile();
+        Path destination = Files.createTempFile("keystore-", ".jks");
+        String destinationPassword = "test-password";
+        File jreSource = new ClassPathResource("cacerts").getFile();
 
         Files.deleteIfExists(destination);
-        int count = ContainerCertificateTrustStoreBuilder.createTrustStore(source, destination, password);
+        ContainerCertificateTrustStoreBuilder.main(new String[]{"--container-source", containerSource.getCanonicalPath(), "--destination", destination.toFile().getCanonicalPath(),
+            "--destination-password", destinationPassword, "--jre-source", jreSource.getCanonicalPath(), "--jre-source-password", "changeit"});
 
-        assertThat(count).isEqualTo(48);
-        assertThat(getKeyStoreSize(destination, password)).isEqualTo(48);
+        assertThat(getKeyStoreSize(destination, destinationPassword)).isEqualTo(206);
     }
 
     @Test
-    public void unix() throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
-        Path source = new ClassPathResource("ca-certificates.crt").getFile().toPath();
-        Path destination = Files.createTempFile("keystore-", "jks");
-        String password = "test-password";
+    public void unix() throws Throwable {
+        File containerSource = new ClassPathResource("ca-certificates.crt").getFile();
+        Path destination = Files.createTempFile("keystore-", ".jks");
+        String destinationPassword = "test-password";
+        File jreSource = new ClassPathResource("cacerts").getFile();
 
         Files.deleteIfExists(destination);
-        int count = ContainerCertificateTrustStoreBuilder.createTrustStore(source, destination, password);
+        ContainerCertificateTrustStoreBuilder.main(new String[]{"--container-source", containerSource.getCanonicalPath(), "--destination", destination.toFile().getCanonicalPath(),
+            "--destination-password", destinationPassword, "--jre-source", jreSource.getCanonicalPath(), "--jre-source-password", "changeit"});
 
-        assertThat(count).isEqualTo(173);
-        assertThat(getKeyStoreSize(destination, password)).isEqualTo(173);
+        assertThat(getKeyStoreSize(destination, destinationPassword)).isEqualTo(331);
     }
 
     private int getKeyStoreSize(Path destination, String password) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
