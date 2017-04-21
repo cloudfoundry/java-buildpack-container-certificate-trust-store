@@ -50,6 +50,19 @@ public final class ContainerCertificateTrustStoreBuilderTest {
     }
 
     @Test
+    public void darwinNoJreSource() throws Throwable {
+        File containerSource = new ClassPathResource("cert.pem").getFile();
+        Path destination = Files.createTempFile("keystore-", ".jks");
+        String destinationPassword = "test-password";
+
+        Files.deleteIfExists(destination);
+        ContainerCertificateTrustStoreBuilder.main(new String[]{"--container-source", containerSource.getCanonicalPath(), "--destination", destination.toFile().getCanonicalPath(),
+            "--destination-password", destinationPassword});
+
+        assertThat(getKeyStoreSize(destination, destinationPassword)).isEqualTo(48);
+    }
+
+    @Test
     public void unix() throws Throwable {
         File containerSource = new ClassPathResource("ca-certificates.crt").getFile();
         Path destination = Files.createTempFile("keystore-", ".jks");
@@ -61,6 +74,19 @@ public final class ContainerCertificateTrustStoreBuilderTest {
             "--destination-password", destinationPassword, "--jre-source", jreSource.getCanonicalPath(), "--jre-source-password", "changeit"});
 
         assertThat(getKeyStoreSize(destination, destinationPassword)).isEqualTo(331);
+    }
+
+    @Test
+    public void unixNoJreSource() throws Throwable {
+        File containerSource = new ClassPathResource("ca-certificates.crt").getFile();
+        Path destination = Files.createTempFile("keystore-", ".jks");
+        String destinationPassword = "test-password";
+
+        Files.deleteIfExists(destination);
+        ContainerCertificateTrustStoreBuilder.main(new String[]{"--container-source", containerSource.getCanonicalPath(), "--destination", destination.toFile().getCanonicalPath(),
+            "--destination-password", destinationPassword});
+
+        assertThat(getKeyStoreSize(destination, destinationPassword)).isEqualTo(173);
     }
 
     private int getKeyStoreSize(Path destination, String password) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {

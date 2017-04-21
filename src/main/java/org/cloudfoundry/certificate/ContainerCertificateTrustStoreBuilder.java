@@ -69,7 +69,10 @@ public final class ContainerCertificateTrustStoreBuilder {
         KeyStore keyStore = KeyStoreBuilder.identity();
 
         addContainerCertificates(containerSource, keyStore);
-        addJreCertificates(jreSource, jreSourcePassword, keyStore);
+
+        if (jreSource != null && jreSourcePassword != null) {
+            addJreCertificates(jreSource, jreSourcePassword, keyStore);
+        }
 
         store(destination, keyStore, destinationPassword);
     }

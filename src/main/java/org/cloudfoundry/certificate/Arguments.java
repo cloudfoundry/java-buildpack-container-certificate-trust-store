@@ -81,15 +81,7 @@ final class Arguments {
             throw new IllegalArgumentException("Must specify --destination-password");
         }
 
-        if (jreSource == null) {
-            throw new IllegalArgumentException("Must specify --jre-source");
-        }
-
-        if (jreSourcePassword == null) {
-            throw new IllegalArgumentException("Must specify --jre-source-password");
-        }
-
-        return new Arguments(Paths.get(containerSource), Paths.get(destination), destinationPassword, Paths.get(jreSource), jreSourcePassword);
+        return new Arguments(Paths.get(containerSource), Paths.get(destination), destinationPassword, jreSource != null ? Paths.get(jreSource) : null, jreSourcePassword);
     }
 
     Path getContainerSource() {
